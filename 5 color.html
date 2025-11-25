@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screen Test - Background Color Changer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            transition: background-color 1s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 100;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .color-info {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 30px 50px;
+            border-radius: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            min-width: 300px;
+        }
+
+        .color-name {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .color-code {
+            font-size: 1.5rem;
+            font-family: monospace;
+            opacity: 0.9;
+            letter-spacing: 1px;
+        }
+
+        .timer {
+            position: fixed;
+            top: 150px;
+            right: 30px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .timer-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .timer-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: monospace;
+        }
+
+        .instructions {
+            position: fixed;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .color-palette {
+            position: fixed;
+            top: 150px;
+            left: 30px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .palette-color {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .palette-color:hover {
+            transform: scale(1.2);
+        }
+
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .color-name {
+                font-size: 1.8rem;
+            }
+            
+            .color-code {
+                font-size: 1.2rem;
+            }
+            
+            .btn {
+                padding: 12px 20px;
+                font-size: 1rem;
+            }
+            
+            .color-palette, .timer {
+                position: relative;
+                top: auto;
+                left: auto;
+                right: auto;
+                margin: 10px auto;
+                width: 90%;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-desktop"></i> Screen Test</h1>
+        <p class="subtitle">Professional Display & Color Testing Tool</p>
+    </div>
+
+    <div class="color-info">
+        <div class="color-name" id="colorName">Deep Sky Blue</div>
+        <div class="color-code" id="colorCode">#00BFFF</div>
+    </div>
+
+    <div class="timer">
+        <div class="timer-label">TIME ON CURRENT COLOR</div>
+        <div class="timer-value" id="timer">00:00</div>
+    </div>
+
+    <div class="color-palette">
+        <div class="palette-color" style="background: #FF0000;" title="Red" data-color="#FF0000" data-name="Red"></div>
+        <div class="palette-color" style="background: #00FF00;" title="Green" data-color="#00FF00" data-name="Green"></div>
+        <div class="palette-color" style="background: #0000FF;" title="Blue" data-color="#0000FF" data-name="Blue"></div>
+        <div class="palette-color" style="background: #FFFFFF;" title="White" data-color="#FFFFFF" data-name="White"></div>
+        <div class="palette-color" style="background: #000000;" title="Black" data-color="#000000" data-name="Black"></div>
+        <div class="palette-color" style="background: #FFFF00;" title="Yellow" data-color="#FFFF00" data-name="Yellow"></div>
+    </div>
+
+    <div class="instructions">
+        <p><i class="fas fa-info-circle"></i> Use the buttons below to change colors or click on the color palette</p>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-primary" id="changeColorBtn">
+            <i class="fas fa-sync-alt"></i> Change Color
+        </button>
+        <button class="btn btn-secondary" id="autoCycleBtn">
+            <i class="fas fa-play"></i> Auto Cycle
+        </button>
+        <button class="btn btn-secondary" id="resetBtn">
+            <i class="fas fa-undo"></i> Reset
+        </button>
+    </div>
+
+    <script>
+        // DOM Elements
+        const changeColorBtn = document.getElementById('changeColorBtn');
+        const autoCycleBtn = document.getElementById('autoCycleBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const colorName = document.getElementById('colorName');
+        const colorCode = document.getElementById('colorCode');
+        const timer = document.getElementById('timer');
+        const body = document.body;
+
+        // Predefined colors for screen testing
+        const colors = [
+            { name: "Red", code: "#FF0000" },
+            { name: "Green", code: "#00FF00" },
+            { name: "Blue", code: "#0000FF" },
+            { name: "White", code: "#FFFFFF" },
+            { name: "Black", code: "#000000" },
+            { name: "Yellow", code: "#FFFF00" },
+            { name: "Cyan", code: "#00FFFF" },
+            { name: "Magenta", code: "#FF00FF" },
+            { name: "Gray", code: "#808080" },
+            { name: "Deep Sky Blue", code: "#00BFFF" },
+            { name: "Lime Green", code: "#32CD32" },
+            { name: "Orange", code: "#FFA500" }
+        ];
+
+        // Variables
+        let currentColorIndex = 0;
+        let autoCycleInterval = null;
+        let secondsOnColor = 0;
+        let timerInterval = null;
+
+        // Initialize the app
+        function init() {
+            // Set initial color
+            setColor(colors[currentColorIndex]);
+            
+            // Start timer
+            startTimer();
+            
+            // Add event listeners
+            changeColorBtn.addEventListener('click', changeColor);
+            autoCycleBtn.addEventListener('click', toggleAutoCycle);
+            resetBtn.addEventListener('click', resetColors);
+            
+            // Add event listeners to palette colors
+            document.querySelectorAll('.palette-color').forEach(color => {
+                color.addEventListener('click', function() {
+                    const colorData = {
+                        name: this.getAttribute('data-name'),
+                        code: this.getAttribute('data-color')
+                    };
+                    setColor(colorData);
+                    resetTimer();
+                });
+            });
+            
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', handleKeyPress);
+        }
+
+        // Change to next color
+        function changeColor() {
+            currentColorIndex = (currentColorIndex + 1) % colors.length;
+            setColor(colors[currentColorIndex]);
+            resetTimer();
+        }
+
+        // Set specific color
+        function setColor(color) {
+            body.style.backgroundColor = color.code;
+            colorName.textContent = color.name;
+            colorCode.textContent = color.code;
+            
+            // Add pulse animation
+            colorName.classList.add('pulse');
+            setTimeout(() => {
+                colorName.classList.remove('pulse');
+            }, 1500);
+            
+            // Update current color index
+            currentColorIndex = colors.findIndex(c => c.code === color.code);
+        }
+
+        // Toggle auto cycle
+        function toggleAutoCycle() {
+            if (autoCycleInterval) {
+                clearInterval(autoCycleInterval);
+                autoCycleInterval = null;
+                autoCycleBtn.innerHTML = '<i class="fas fa-play"></i> Auto Cycle';
+                autoCycleBtn.classList.remove('btn-primary');
+                autoCycleBtn.classList.add('btn-secondary');
+            } else {
+                autoCycleInterval = setInterval(changeColor, 3000);
+                autoCycleBtn.innerHTML = '<i class="fas fa-pause"></i> Stop Cycle';
+                autoCycleBtn.classList.remove('btn-secondary');
+                autoCycleBtn.classList.add('btn-primary');
+            }
+        }
+
+        // Reset to initial state
+        function resetColors() {
+            currentColorIndex = 0;
+            setColor(colors[currentColorIndex]);
+            resetTimer();
+            
+            // Stop auto cycle if running
+            if (autoCycleInterval) {
+                clearInterval(autoCycleInterval);
+                autoCycleInterval = null;
+                autoCycleBtn.innerHTML = '<i class="fas fa-play"></i> Auto Cycle';
+                autoCycleBtn.classList.remove('btn-primary');
+                autoCycleBtn.classList.add('btn-secondary');
+            }
+        }
+
+        // Start timer
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                secondsOnColor++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        // Reset timer
+        function resetTimer() {
+            secondsOnColor = 0;
+            updateTimerDisplay();
+        }
+
+        // Update timer display
+        function updateTimerDisplay() {
+            const minutes = Math.floor(secondsOnColor / 60);
+            const seconds = secondsOnColor % 60;
+            timer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Handle keyboard shortcuts
+        function handleKeyPress(e) {
+            switch(e.key) {
+                case ' ':
+                case 'Enter':
+                    e.preventDefault();
+                    changeColor();
+                    break;
+                case 'a':
+                case 'A':
+                    e.preventDefault();
+                    toggleAutoCycle();
+                    break;
+                case 'r':
+                case 'R':
+                    e.preventDefault();
+                    resetColors();
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    changeColor();
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    currentColorIndex = (currentColorIndex - 1 + colors.length) % colors.length;
+                    setColor(colors[currentColorIndex]);
+                    resetTimer();
+                    break;
+            }
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

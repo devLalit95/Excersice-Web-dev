@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List App</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .completed {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+        .todo-item {
+            transition: all 0.3s ease;
+        }
+        .fade-out {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow-lg border-0 rounded-lg">
+                    <div class="card-header bg-primary text-white text-center py-4">
+                        <h1 class="text-3xl font-bold mb-0">Todo List</h1>
+                        <p class="mt-2 mb-0">Manage Task</p>
+                    </div>
+                    <div class="card-body p-4">
+                        <!-- Add Todo Form -->
+                        <div class="mb-4">
+                            <div class="input-group">
+                                <input type="text" id="todoInput" class="form-control form-control-lg" placeholder="Add new task..." aria-label="Add new ">
+                                <button class="btn btn-primary btn-lg" type="button" id="addBtn">Add</button>
+                            </div>
+                            <div class="mt-2 text-danger" id="errorMsg"></div>
+                        </div>
+                        
+                        <!-- Todo Stats -->
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="badge bg-info text-dark fs-6">Total: <span id="totalCount">0</span></span>
+                            <span class="badge bg-success fs-6">Completed: <span id="completedCount">0</span></span>
+                            <span class="badge bg-warning text-dark fs-6">Due: <span id="pendingCount">0</span></span>
+                        </div>
+                        
+                        <!-- Todo List -->
+                        <div id="todoList" class="list-group">
+                            <!-- Todos will be added here dynamically -->
+                        </div>
+                        
+                        <!-- Empty State -->
+                        <div id="emptyState" class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="bi bi-clipboard-check display-1 d-block mb-3"></i>
+                                <h4>No Task</h4>
+                                <p>Start for add task</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer text-center py-3">
+                        <small class="text-muted">Tasks are saved in browser</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // DOM Elements
+        const todoInput = document.getElementById('todoInput');
+        const addBtn = document.getElementById('addBtn');
+        const todoList = document.getElementById('todoList');
+        const emptyState = document.getElementById('emptyState');
+        const errorMsg = document.getElementById('errorMsg');
+        const totalCount = document.getElementById('totalCount');
+        const completedCount = document.getElementById('completedCount');
+        const pendingCount = document.getElementById('pendingCount');
+
+        // Load todos from localStorage
+        let todos = JSON.parse(localStorage.getItem('todos')) || [];
+
+        // Initialize the app
+        function init() {
+            renderTodos();
+            updateStats();
+            
+            // Add event listeners
+            addBtn.addEventListener('click', addTodo);
+            todoInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addTodo();
+                }
+            });
+        }
+
+        // Add a new todo
+        function addTodo() {
+            const text = todoInput.value.trim();
+            
+            // Validate input
+            if (text === '') {
+                showError('Please add task first');
+                return;
+            }
+            
+            // Create new todo object
+            const todo = {
+                id: Date.now(),
+                text: text,
+                completed: false,
+                createdAt: new Date().toLocaleString('hi-IN')
+            };
+            
+            // Add to todos array
+            todos.push(todo);
+            
+            // Save to localStorage
+            saveTodos();
+            
+            // Clear input and render todos
+            todoInput.value = '';
+            hideError();
+            renderTodos();
+            updateStats();
+            
+            // Focus back to input
+            todoInput.focus();
+        }
+
+        // Delete a todo
+        function deleteTodo(id) {
+            // Find todo element for animation
+            const todoElement = document.querySelector(`[data-id="${id}"]`);
+            
+            // Add fade-out animation
+            if (todoElement) {
+                todoElement.classList.add('fade-out');
+                
+                // Remove after animation completes
+                setTimeout(() => {
+                    todos = todos.filter(todo => todo.id !== id);
+                    saveTodos();
+                    renderTodos();
+                    updateStats();
+                }, 300);
+            }
+        }
+
+        // Toggle todo completion status
+        function toggleComplete(id) {
+            todos = todos.map(todo => {
+                if (todo.id === id) {
+                    return { ...todo, completed: !todo.completed };
+                }
+                return todo;
+            });
+            
+            saveTodos();
+            renderTodos();
+            updateStats();
+        }
+
+        // Render todos to the DOM
+        function renderTodos() {
+            if (todos.length === 0) {
+                todoList.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            todoList.style.display = 'block';
+            emptyState.style.display = 'none';
+            
+            // Clear current list
+            todoList.innerHTML = '';
+            
+            // Add each todo to the list
+            todos.forEach(todo => {
+                const todoItem = document.createElement('div');
+                todoItem.className = `list-group-item list-group-item-action d-flex justify-content-between align-items-center todo-item ${todo.completed ? 'completed' : ''}`;
+                todoItem.setAttribute('data-id', todo.id);
+                
+                todoItem.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <input class="form-check-input me-3" type="checkbox" ${todo.completed ? 'checked' : ''}>
+                        <div>
+                            <div class="fw-bold">${todo.text}</div>
+                            <small class="text-muted">${todo.createdAt}</small>
+                        </div>
+                    </div>
+                    <button class="btn btn-sm btn-outline-danger">Remove</button>
+                `;
+                
+                // Add event listeners to the buttons
+                const checkbox = todoItem.querySelector('input[type="checkbox"]');
+                const deleteBtn = todoItem.querySelector('button');
+                
+                checkbox.addEventListener('change', () => toggleComplete(todo.id));
+                deleteBtn.addEventListener('click', () => deleteTodo(todo.id));
+                
+                todoList.appendChild(todoItem);
+            });
+        }
+
+        // Update statistics
+        function updateStats() {
+            const total = todos.length;
+            const completed = todos.filter(todo => todo.completed).length;
+            const pending = total - completed;
+            
+            totalCount.textContent = total;
+            completedCount.textContent = completed;
+            pendingCount.textContent = pending;
+        }
+
+        // Save todos to localStorage
+        function saveTodos() {
+            localStorage.setItem('todos', JSON.stringify(todos));
+        }
+
+        // Show error message
+        function showError(message) {
+            errorMsg.textContent = message;
+            errorMsg.style.display = 'block';
+            todoInput.classList.add('is-invalid');
+        }
+
+        // Hide error message
+        function hideError() {
+            errorMsg.textContent = '';
+            errorMsg.style.display = 'none';
+            todoInput.classList.remove('is-invalid');
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
